@@ -8,8 +8,9 @@ MAAP documentation is hosted on [maap-project.readthedocs.io](https://maap-proje
 
 You need to install Sphinx and supporting packages locally so that you can make sure that your edits show up correctly before you maske a pull request to the repo. To do this run the following command:
 
+# ADD INSTRUCTION FOR PYENV
 ```
-$ pip install Sphinx ipykernel nbsphinx sphinxcontrib-napoleon sphinx-rtd-theme pandoc
+$ pip install -r requirements.txt
 ```
 After installing the necessary packages you build the docs using the following command from the docs directory:
 
