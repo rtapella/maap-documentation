@@ -9,9 +9,8 @@ import json
 gv.extension('bokeh', logo=False)
 pn.extension()
 
-# opts.defaults(
-#     opts.Layout(sublabel_format='', vspace=0.1, hspace=0.1, fig_size=200),
-#     opts.WMTS(zoom=0))
+provider = 'NASA_MAAP'
+cmr_search_url = "https://cmr.maap-project.org/search"
 
 class Mapview(param.Parameterized):
     tiles         = gvts.CartoLight.opts('WMTS', xaxis=None, yaxis=None, width=1200, height=700, global_extent=True)
@@ -22,9 +21,18 @@ class Mapview(param.Parameterized):
     def show(self):
         return self.tiles * self.box_polygons
 
+    def add_layer_to_map(self, s3_url):
+        tititler_url = "https://l40l1vwmvi.execute-api.us-west-2.amazonaws.com"
+        rescale = "0,400"
+        colormap_name = "gist_earth_r"
+        color_formula = "gamma r 2"
+        #tititler_url = "https://titiler.maap-project.org"
+        tiles_url = tititler_url + "/cog/tiles/{Z}/{Y}/{X}.png?url=" + f"{s3_url}&rescale={rescale}&colormap_name={colormap_name}&color_formula={color_formula}"
+        #tiles_url = tititler_url + "/cog/tiles/{z}/{x}/{y}.png?url=" + f"{granule_s3_url}&rescale=350,850&colormap_name={colormap_name}"
+        data_layer = gvts.WMTS(tiles_url)
+        return self.tiles * data_layer
+
 class CollectionSelection(param.Parameterized):
-    provider = 'NASA_MAAP'
-    cmr_search_url = "https://cmr.maap-project.org/search"
     collections_search_url = f"{cmr_search_url}/collections.json?provider={provider}&page_size=100"
     granules_search_url = f"{cmr_search_url}/collections.json"
     
@@ -57,41 +65,50 @@ class GranulesSearch(param.Parameterized):
         return pn.widgets.Select(name='Select', options=self.granule_urls)    
 
 class Dashboard(param.Parameterized):
-    button = param.Action(lambda x: x.param.trigger('button'), label='Update geometries')
+    update_geometries_button = param.Action(lambda x: x.param.trigger('update_geometries_button'), label='Update geometries')
     granule_button = param.Action(lambda x: x.param.trigger('granule_button'), label='Search for granules')
-    collection_selection = CollectionSelection()
+    add_layer_to_map_button = param.Action(lambda x: x.param.trigger('add_layer_to_map_button'), label='Update Map')
+    collection_selection = CollectionSelection().show()
     mapview = Mapview()
 
-    @param.depends('button')
+    @param.depends('update_geometries_button')
     def update_geometry(self):
         box_data = self.mapview.box_stream.data or {}
-        print(f"box data {box_data}")
-        # print(f"selected_collection {self.collection_selection.value}")
-        self.lower_longitude = box_data.get('x0', [0.])[0]
-        self.lower_latitude =  box_data.get('y0', [0.])[0]
-        self.upper_longitude = box_data.get('x1', [0.])[0]
-        self.upper_latitude = box_data.get('y1', [0.])[0]
+        llong = box_data.get('x0', [0.])[0]
+        llat =  box_data.get('y0', [0.])[0]
+        ulong = box_data.get('x1', [0.])[0]
+        ulat = box_data.get('y1', [0.])[0]
+        self.bbox = ','.join(map(str, [llong, llat, ulong, ulat]))
         return pn.Row(
-            pn.widgets.FloatInput(name='Lower Latitude', value=self.lower_latitude),
-            pn.widgets.FloatInput(name='Lower Longitude', value=self.lower_longitude),
-            pn.widgets.FloatInput(name='Upper Longitude', value=self.upper_longitude),
-            pn.widgets.FloatInput(name='Upper Longitude', value=self.upper_latitude),
+            pn.widgets.FloatInput(name='Lower Longitude', value=llong),
+            pn.widgets.FloatInput(name='Lower Latitude', value=llat),
+            pn.widgets.FloatInput(name='Upper Longitude', value=ulong),
+            pn.widgets.FloatInput(name='Upper Latitude', value=ulat),
         )
 
     @param.depends('granule_button') 
     def search_for_granules(self):
-        granules_search = GranulesSearch(collection='ABLVIS2', bbox = '0,0,0,0')
-        return granules_search.show()
+        selected_collection = self.collection_selection.value
+        granules_search = GranulesSearch(collection=selected_collection, bbox = self.bbox)
+        self.granules_search = granules_search.show()
+        return self.granules_search
 
+    @param.depends('add_layer_to_map_button')
+    def add_layer_to_map(self):
+        return self.mapview.add_layer_to_map(self.granules_search.value)
 
     def view(self):
         return pn.Row(
-            pn.Row(
-                pn.Column(self.mapview.show()),
-                pn.Column(self.collection_selection.show()),
-            ),
-            pn.Column(self.param['button'], self.update_geometry),
-            pn.Column(self.param['granule_button'], self.search_for_granules)
+            pn.Column(self.mapview.show()),
+            pn.Column(
+                self.collection_selection,
+                self.param['update_geometries_button'],
+                self.update_geometry,
+                self.param['granule_button'],
+                self.search_for_granules,
+                self.param['add_layer_to_map_button'],
+                self.add_layer_to_map
+            )
         )
 
 d = Dashboard()
