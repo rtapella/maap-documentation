@@ -9,6 +9,17 @@ Welcome to the MAAP User Documentation!
 .. toctree::
   :maxdepth: 1
   
+  gettingstarted.rst
+  tutorials.rst
+  templates.rst
+  systemreference.rst
+
+
+Old Index
+========
+.. toctree::
+  :maxdepth: 1
+
   intro.rst
   searching.rst
   visualizing.rst 
@@ -18,10 +29,3 @@ Welcome to the MAAP User Documentation!
   tutorials.rst
   faqs.rst
   platform_tech_docs.rst
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
