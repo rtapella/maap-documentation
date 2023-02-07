@@ -1,10 +1,15 @@
-Platform Technical Documentation
+System Reference Guide
 =======================================
 
 .. toctree::
   :maxdepth: 2
   :caption: Platform Technical Documentation:
   
+  system_reference/ade.ipynb
+  system_reference/add_project.ipynb
+
+Old Platform Tech Docs Index 
+=======================================
   platform_technical_documentation/add_project.ipynb
   platform_technical_documentation/create_project.ipynb
   platform_technical_documentation/create_workspace.ipynb

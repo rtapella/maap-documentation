@@ -16,7 +16,7 @@ Welcome to the MAAP User Documentation!
 
 
 Old Index
-========
+=======================================
 .. toctree::
   :maxdepth: 1
 
