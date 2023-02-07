@@ -13,19 +13,3 @@ Welcome to the MAAP User Documentation!
   tutorials.rst
   templates.rst
   systemreference.rst
-
-
-Old Index
-=======================================
-.. toctree::
-  :maxdepth: 1
-
-  intro.rst
-  searching.rst
-  visualizing.rst 
-  accessing.rst
-  querying.rst
-  userdata.rst
-  tutorials.rst
-  faqs.rst
-  platform_tech_docs.rst
